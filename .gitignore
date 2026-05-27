@@ -1,0 +1,12 @@
+# Secrets — কখনো commit করবেন না
+*.env
+.env*
+secrets.sh
+passwords.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
