@@ -236,7 +236,7 @@ if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
     mkdir -p /var/www/html
     
     # Initialize FileBrowser DB and set default admin user
-    filebrowser config init -a 127.0.0.1 -p 8080 -b /files -r /var/www/html -d /etc/filebrowser.db 2>/dev/null || true
+    filebrowser config init -a 127.0.0.1 -p 8080 -b /files -r / -d /etc/filebrowser.db 2>/dev/null || true
     filebrowser users add admin admin --perm.admin -d /etc/filebrowser.db 2>/dev/null || filebrowser users update admin -p admin -d /etc/filebrowser.db 2>/dev/null || true
 
     cat > /etc/systemd/system/filebrowser.service <<EOF
@@ -246,7 +246,7 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=/usr/local/bin/filebrowser -r /var/www/html -p 8080 -a 127.0.0.1 -d /etc/filebrowser.db -b /files
+ExecStart=/usr/local/bin/filebrowser -r / -p 8080 -a 127.0.0.1 -d /etc/filebrowser.db -b /files
 Restart=on-failure
 
 [Install]
