@@ -9,13 +9,13 @@ One command দিয়ে **Nginx**, **PostgreSQL**, এবং **pgAdmin 4** i
 ## ⚡ One Command Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/nginx-postgres-pgadmin/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/rubeltechcom/nginx-postgres-pgadmin/main/install.sh | sudo bash
 ```
 
 ### Custom পাসওয়ার্ড দিয়ে install করুন
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/nginx-postgres-pgadmin/main/install.sh \
+curl -fsSL https://raw.githubusercontent.com/rubeltechcom/nginx-postgres-pgadmin/main/install.sh \
   | sudo PG_PASSWORD="আপনার_পাসওয়ার্ড" \
          PGADMIN_EMAIL="আপনার@email.com" \
          PGADMIN_PASSWORD="আপনার_পাসওয়ার্ড" \
@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/nginx-postgres-pgadmi
 
 ```bash
 # 1. Repository clone করুন
-git clone https://github.com/YOUR_USERNAME/nginx-postgres-pgadmin.git
+git clone https://github.com/rubeltechcom/nginx-postgres-pgadmin.git
 cd nginx-postgres-pgadmin
 
 # 2. Script টি executable করুন

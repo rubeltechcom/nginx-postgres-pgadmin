@@ -2,7 +2,7 @@
 # ================================================
 #  Nginx + PostgreSQL + pgAdmin 4 Auto Installer
 #  Supports: Ubuntu 20.04, 22.04, 24.04 / Debian
-#  GitHub: https://github.com/YOUR_USERNAME/nginx-postgres-pgadmin
+#  GitHub: https://github.com/rubeltechcom/nginx-postgres-pgadmin
 # ================================================
 
 set -e
@@ -30,12 +30,6 @@ fi
 # ================================================
 # CONFIGURATION — এখানে আপনার তথ্য দিন
 # ================================================
-PG_PASSWORD="${PG_PASSWORD:-StrongPass@1234}"
-PGADMIN_EMAIL="${PGADMIN_EMAIL:-admin@local.com}"
-PGADMIN_PASSWORD="${PGADMIN_PASSWORD:-Admin@1234}"
-PGADMIN_PORT="${PGADMIN_PORT:-5050}"
-NGINX_PORT="${NGINX_PORT:-80}"
-# ================================================
 
 clear
 echo -e "${BOLD}"
@@ -44,12 +38,51 @@ echo "  ║   Nginx + PostgreSQL + pgAdmin 4      ║"
 echo "  ║   Auto Installer for Ubuntu/Debian    ║"
 echo "  ╚═══════════════════════════════════════╝"
 echo -e "${NC}"
-echo -e "  ${YELLOW}PostgreSQL Password :${NC} $PG_PASSWORD"
-echo -e "  ${YELLOW}pgAdmin Email       :${NC} $PGADMIN_EMAIL"
-echo -e "  ${YELLOW}pgAdmin Password    :${NC} $PGADMIN_PASSWORD"
-echo -e "  ${YELLOW}pgAdmin Port        :${NC} $PGADMIN_PORT"
+
+prompt_for_value() {
+    local var_name="$1"
+    local prompt_text="$2"
+    local default_value="$3"
+    
+    if [[ -n "${!var_name}" ]]; then
+        return
+    fi
+    
+    local user_input
+    if [[ -c /dev/tty ]]; then
+        read -rp "  ${YELLOW}$prompt_text${NC} [$default_value]: " user_input < /dev/tty
+    else
+        read -rp "  ${YELLOW}$prompt_text${NC} [$default_value]: " user_input
+    fi
+    
+    if [[ -z "$user_input" ]]; then
+        eval "$var_name=\"$default_value\""
+    else
+        eval "$var_name=\"$user_input\""
+    fi
+}
+
+echo -e "  Please configure the installation (Press ENTER to use defaults):"
+prompt_for_value PG_PASSWORD "PostgreSQL Password" "StrongPass@1234"
+prompt_for_value PGADMIN_EMAIL "pgAdmin Email" "admin@local.com"
+prompt_for_value PGADMIN_PASSWORD "pgAdmin Password" "Admin@1234"
+prompt_for_value PGADMIN_PORT "pgAdmin Port" "5050"
+prompt_for_value NGINX_PORT "Nginx Port" "80"
+# ================================================
+
 echo ""
-read -rp "  Continue? (y/N): " confirm
+echo -e "  ${GREEN}Summary:${NC}"
+echo -e "  PostgreSQL Password : $PG_PASSWORD"
+echo -e "  pgAdmin Email       : $PGADMIN_EMAIL"
+echo -e "  pgAdmin Password    : $PGADMIN_PASSWORD"
+echo -e "  pgAdmin Port        : $PGADMIN_PORT"
+echo ""
+
+if [[ -c /dev/tty ]]; then
+  read -rp "  Continue with installation? (y/N): " confirm < /dev/tty
+else
+  read -rp "  Continue with installation? (y/N): " confirm
+fi
 [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Cancelled."; exit 0; }
 
 # ── Section 1: System Update ──
