@@ -68,6 +68,7 @@ prompt_for_value PGADMIN_EMAIL "pgAdmin Email" "admin@local.com"
 prompt_for_value PGADMIN_PASSWORD "pgAdmin Password" "Admin@1234"
 prompt_for_value PGADMIN_PORT "pgAdmin Port" "5050"
 prompt_for_value NGINX_PORT "Nginx Port" "80"
+prompt_for_value INSTALL_FILEBROWSER "Install Web File Manager (cPanel-like)? (y/n)" "y"
 # ================================================
 
 echo ""
@@ -76,6 +77,7 @@ echo -e "  PostgreSQL Password : $PG_PASSWORD"
 echo -e "  pgAdmin Email       : $PGADMIN_EMAIL"
 echo -e "  pgAdmin Password    : $PGADMIN_PASSWORD"
 echo -e "  pgAdmin Port        : $PGADMIN_PORT"
+echo -e "  Install File Manager: $INSTALL_FILEBROWSER"
 echo ""
 
 if [[ -c /dev/tty ]]; then
@@ -114,6 +116,24 @@ server {
         proxy_buffering    off;
         proxy_http_version 1.1;
     }
+EOF
+
+if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
+cat >> /etc/nginx/sites-available/pgadmin <<EOF
+
+    # FileBrowser
+    location /files/ {
+        proxy_pass         http://127.0.0.1:8080/files/;
+        proxy_set_header   Host \$host;
+        proxy_set_header   X-Real-IP \$remote_addr;
+        proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header   Upgrade \$http_upgrade;
+        proxy_set_header   Connection "upgrade";
+    }
+EOF
+fi
+
+cat >> /etc/nginx/sites-available/pgadmin <<EOF
 
     # Default
     location / {
@@ -209,6 +229,31 @@ ufw allow 5050/tcp  # pgAdmin direct
 # PostgreSQL (5432) intentionally NOT exposed
 info "Firewall configured"
 
+# ── Section 6: FileBrowser ──
+if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
+    section "6/6  Installing File Manager"
+    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+    mkdir -p /var/www/html
+    
+    cat > /etc/systemd/system/filebrowser.service <<EOF
+[Unit]
+Description=FileBrowser Web File Manager
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/filebrowser -r /var/www/html -p 8080 -a 127.0.0.1 -d /etc/filebrowser.db -b /files
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable filebrowser
+    systemctl start filebrowser
+    info "File Manager installed and running at /files/"
+fi
+
 # ── Done ──
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
@@ -219,8 +264,17 @@ echo "  ║         Installation Complete! ✓          ║"
 echo "  ╠═══════════════════════════════════════════╣"
 echo -e "  ║  🌐 Nginx       http://${SERVER_IP}        "
 echo -e "  ║  🖥  pgAdmin 4   http://${SERVER_IP}/pgadmin/"
+if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
+echo -e "  ║  📁 File Manager http://${SERVER_IP}/files/  "
+fi
 echo -e "  ║  🐘 PostgreSQL  ${SERVER_IP}:5432          "
 echo "  ╠═══════════════════════════════════════════╣"
+if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
+echo -e "  ║  File Manager Login:                      "
+echo -e "  ║    User     : admin                       "
+echo -e "  ║    Password : admin  (Please change it!)  "
+echo "  ╠═══════════════════════════════════════════╣"
+fi
 echo -e "  ║  pgAdmin Login:                           "
 echo -e "  ║    Email    : ${PGADMIN_EMAIL}             "
 echo -e "  ║    Password : ${PGADMIN_PASSWORD}          "

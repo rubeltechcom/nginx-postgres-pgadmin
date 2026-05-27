@@ -48,6 +48,7 @@ sudo ./install.sh
 | Service | URL / Address |
 |---|---|
 | pgAdmin 4 | `http://YOUR_SERVER_IP/pgadmin/` |
+| File Manager | `http://YOUR_SERVER_IP/files/` |
 | Nginx | `http://YOUR_SERVER_IP` |
 | PostgreSQL | `YOUR_SERVER_IP:5432` |
 
@@ -92,6 +93,7 @@ http://192.168.1.XXX/pgadmin/
 - ✅ **Nginx** — Web server + pgAdmin reverse proxy
 - ✅ **PostgreSQL** — Database server
 - ✅ **pgAdmin 4** — Web-based DB management UI
+- ✅ **FileBrowser** — (Optional) cPanel-like Web File Manager
 - ✅ **UFW Firewall** — Basic firewall rules
 - ✅ **pg_hba.conf** — Auto backup নেওয়া হয়
 
