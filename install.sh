@@ -235,6 +235,10 @@ if [[ "$INSTALL_FILEBROWSER" =~ ^[Yy]$ ]]; then
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
     mkdir -p /var/www/html
     
+    # Initialize FileBrowser DB and set default admin user
+    filebrowser config init -a 127.0.0.1 -p 8080 -b /files -r /var/www/html -d /etc/filebrowser.db 2>/dev/null || true
+    filebrowser users add admin admin --perm.admin -d /etc/filebrowser.db 2>/dev/null || filebrowser users update admin -p admin -d /etc/filebrowser.db 2>/dev/null || true
+
     cat > /etc/systemd/system/filebrowser.service <<EOF
 [Unit]
 Description=FileBrowser Web File Manager
