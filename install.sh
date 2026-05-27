@@ -105,7 +105,7 @@ server {
 
     # pgAdmin
     location /pgadmin/ {
-        proxy_pass         http://127.0.0.1:${PGADMIN_PORT}/;
+        proxy_pass         http://127.0.0.1:${PGADMIN_PORT}/pgadmin/;
         proxy_set_header   Host \$host;
         proxy_set_header   X-Real-IP \$remote_addr;
         proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -167,6 +167,13 @@ echo "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs)
   > /etc/apt/sources.list.d/pgadmin4.list
 
 apt update -y
+
+# Pre-install apache2 and change port to avoid conflict with Nginx on port 80
+apt install -y apache2 || true
+sed -i "s/Listen 80/Listen ${PGADMIN_PORT}/" /etc/apache2/ports.conf 2>/dev/null || true
+sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PGADMIN_PORT}>/" /etc/apache2/sites-available/000-default.conf 2>/dev/null || true
+systemctl restart apache2 || true
+
 apt install -y pgadmin4-web
 
 # Configure pgAdmin
@@ -174,8 +181,16 @@ PGADMIN_SETUP_EMAIL="$PGADMIN_EMAIL" \
 PGADMIN_SETUP_PASSWORD="$PGADMIN_PASSWORD" \
 /usr/pgadmin4/bin/setup-web.sh --yes
 
+# Change default /pgadmin4 alias to /pgadmin
+if [[ -f /etc/apache2/conf-available/pgadmin4.conf ]]; then
+    sed -i 's|WSGIScriptAlias /pgadmin4|WSGIScriptAlias /pgadmin|g' /etc/apache2/conf-available/pgadmin4.conf
+    systemctl reload apache2
+fi
+
 # Set custom port
+mkdir -p /etc/pgadmin4
 CONFIG_LOCAL="/etc/pgadmin4/config_local.py"
+touch "$CONFIG_LOCAL"
 if grep -q "DEFAULT_SERVER_PORT" "$CONFIG_LOCAL" 2>/dev/null; then
   sed -i "s/DEFAULT_SERVER_PORT.*/DEFAULT_SERVER_PORT = ${PGADMIN_PORT}/" "$CONFIG_LOCAL"
 else
